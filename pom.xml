@@ -4,19 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.francisjohnson</groupId>
-    <artifactId>alexa-skill-testing</artifactId>
+    <groupId>f18a14c09s</groupId>
+    <artifactId>alexa-music-skill-model-gen</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <awsRegion>us-east-1</awsRegion>
-        <s3Bucket>s3.francisjohnson.org</s3Bucket>
-        <stackName>private-music-alexa-skill</stackName>
-        <s3Prefix>aws-serverless-java/${project.groupId}:${project.artifactId}:${project.version}</s3Prefix>
-        <skipLocalInvoke>true</skipLocalInvoke>
     </properties>
 
     <build>
@@ -70,7 +65,8 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.3.2</version>
             <scope>test</scope>
-        </dependency><!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
