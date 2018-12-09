@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class AskMusicDocBasedTestJavaFileGenerator {
+public class AskMusicExampleBasedTestJavaFileGenerator {
     public static void main(String... args) throws IOException {
 //        inferClasses().entrySet().forEach(clazz -> System.out.printf("%s:%n\t%s%n", clazz.getKey(), clazz.getValue()));
         inferClasses().entrySet().forEach(clazz -> {
@@ -34,9 +34,9 @@ public class AskMusicDocBasedTestJavaFileGenerator {
         String packageName = "f18a14c09s.integration.alexa.music.data";
         AskMusicModelDocAnalyzer.getComponentModel().forEach(classInfo -> {
             try {
-                retval.putAll(new AskMusicDocBasedTestJavaGenerator().generateTestClasses(packageName,
+                retval.putAll(new AskMusicExampleBasedTestJavaGenerator().generateTestClasses(packageName,
                         classInfo));
-                retval.putAll(new AskMusicDocBasedTestJavaGenerator().generateTestClasses(packageName,
+                retval.putAll(new AskMusicExampleBasedTestJavaGenerator().generateTestClasses(packageName,
                         classInfo));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -45,9 +45,9 @@ public class AskMusicDocBasedTestJavaFileGenerator {
         });
         AskMusicModelDocAnalyzer.getMessageModel().forEach(messageInfo -> {
             try {
-                retval.putAll(new AskMusicDocBasedTestJavaGenerator().generateTestClasses(packageName,
+                retval.putAll(new AskMusicExampleBasedTestJavaGenerator().generateTestClasses(packageName,
                         messageInfo.getRequestInfo()));
-                retval.putAll(new AskMusicDocBasedTestJavaGenerator().generateTestClasses(packageName,
+                retval.putAll(new AskMusicExampleBasedTestJavaGenerator().generateTestClasses(packageName,
                         messageInfo.getResponseInfo()));
             } catch (IOException e) {
                 e.printStackTrace();

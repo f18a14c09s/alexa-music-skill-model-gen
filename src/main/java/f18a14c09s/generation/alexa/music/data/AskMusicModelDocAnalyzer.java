@@ -1,8 +1,8 @@
 package f18a14c09s.generation.alexa.music.data;
 
 import f18a14c09s.integration.alexa.data.AbstractMessage;
-import f18a14c09s.integration.alexa.data.Request;
-import f18a14c09s.integration.alexa.data.Response;
+import f18a14c09s.integration.alexa.music.data.Request;
+import f18a14c09s.integration.alexa.music.data.Response;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -289,6 +289,8 @@ public class AskMusicModelDocAnalyzer {
                         retval.add(new JsonExample(code.text(), description.toString()));
                     }
                     description.setLength(0);
+                } else if (sibling.is("h1,h2,h3")) {
+                    break;
                 }
             }
         }

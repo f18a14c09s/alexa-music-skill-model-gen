@@ -1,8 +1,5 @@
 package f18a14c09s.generation.alexa.music.data;
 
-import f18a14c09s.integration.alexa.data.Request;
-import f18a14c09s.integration.alexa.data.Response;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

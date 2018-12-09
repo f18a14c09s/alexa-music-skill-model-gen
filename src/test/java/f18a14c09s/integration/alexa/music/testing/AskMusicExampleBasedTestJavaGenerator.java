@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.*;
 
-public class AskMusicDocBasedTestJavaGenerator {
+public class AskMusicExampleBasedTestJavaGenerator {
 
     private ObjectMapper jsonMapper = new ObjectMapper();
 
