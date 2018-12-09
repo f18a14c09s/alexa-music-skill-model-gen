@@ -32,6 +32,17 @@ public class AskMusicDocBasedTestJavaFileGenerator {
     public static Map<String, String> inferClasses() throws IOException {
         Map<String, String> retval = new HashMap<>();
         String packageName = "f18a14c09s.integration.alexa.music.data";
+        AskMusicModelDocAnalyzer.getComponentModel().forEach(classInfo -> {
+            try {
+                retval.putAll(new AskMusicDocBasedTestJavaGenerator().generateTestClasses(packageName,
+                        classInfo));
+                retval.putAll(new AskMusicDocBasedTestJavaGenerator().generateTestClasses(packageName,
+                        classInfo));
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+        });
         AskMusicModelDocAnalyzer.getMessageModel().forEach(messageInfo -> {
             try {
                 retval.putAll(new AskMusicDocBasedTestJavaGenerator().generateTestClasses(packageName,
