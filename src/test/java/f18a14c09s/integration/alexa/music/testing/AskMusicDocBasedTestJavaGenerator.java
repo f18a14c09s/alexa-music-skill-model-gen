@@ -1,6 +1,7 @@
 package f18a14c09s.integration.alexa.music.testing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import f18a14c09s.generation.alexa.music.data.AbstractClassInfo;
 import f18a14c09s.generation.alexa.music.data.ComponentClassInfo;
 import f18a14c09s.generation.alexa.music.data.JsonExample;
 import f18a14c09s.generation.alexa.music.data.MessageClassInfo;
@@ -67,8 +68,11 @@ public class AskMusicDocBasedTestJavaGenerator {
         return null;
     }
 
-    public Map<String, String> generateTestClasses(String implPackageName, MessageClassInfo classInfo) throws
-            IOException {
+    public Map<String, String> generateTestClasses(String apiClassName,
+                                                   String implPackageName,
+                                                   AbstractClassInfo classInfo) throws IOException {
+        String apiPackageName = apiClassName.substring(0, apiClassName.lastIndexOf('.'));
+        String apiClassSimpleName = apiClassName.substring(apiClassName.lastIndexOf('.') + 1);
         Map<String, String> retval = new HashMap<>();
         String implName = String.format("%s.%s", implPackageName, classInfo.inferClassName());
         for (int i = 0; i < classInfo.getJsonExamples().size(); i++) {
@@ -78,8 +82,8 @@ public class AskMusicDocBasedTestJavaGenerator {
             List<String> classesToImport = new ArrayList<>(Stream.of(ObjectMapper.class, Test.class, IOException.class)
                     .map(Class::getName)
                     .collect(Collectors.toList()));
-            if (!classInfo.getMessageType().getPackage().getName().equals(implPackageName)) {
-                classesToImport.add(classInfo.getMessageType().getName());
+            if (!apiPackageName.equals(implPackageName)) {
+                classesToImport.add(apiClassName);
             }
             for (String className : classesToImport) {
                 sourceCode.append(String.format("%nimport %s;", className));
@@ -93,7 +97,7 @@ public class AskMusicDocBasedTestJavaGenerator {
                 sourceCode.append(String.format("%nimport static %s.*;", staticMethodsClass.getName()));
             }
             sourceCode.append(Optional.ofNullable(jsonExample.getDescription())
-                    .map(description -> String.format("%n/**%s%n *",
+                    .map(description -> String.format("%n/**%s%n */",
                             Arrays.stream(description.trim().split("(\\r?\\n)+"))
                                     .map(line -> String.format("%n * %s", line))
                                     .collect(Collectors.joining())))
@@ -105,13 +109,13 @@ public class AskMusicDocBasedTestJavaGenerator {
             sourceCode.append(String.format(
                     "%n@Test%nvoid testDeserialization() throws IOException {%nObjectMapper jsonMapper = new ObjectMapper();"));
             String variableName = "subject";
-            if (classInfo.getMessageType().getName().equals(implName)) {
+            if (apiClassName.equals(implName)) {
                 sourceCode.append(String.format("%s %s = jsonMapper.readValue(TEST_CASE, %1$s.class);",
                         classInfo.inferClassName(),
                         variableName));
             } else {
                 sourceCode.append(String.format("%s obj = jsonMapper.readValue(TEST_CASE, %1$s.class);",
-                        classInfo.getMessageType().getSimpleName()));
+                        apiClassSimpleName));
                 sourceCode.append(String.format("%s %s = (%1$s)obj;", classInfo.inferClassName(), variableName));
             }
             Object map = jsonMapper.readValue(jsonExample.getJsonValue(), HashMap.class);
@@ -124,48 +128,14 @@ public class AskMusicDocBasedTestJavaGenerator {
 
     public Map<String, String> generateTestClasses(String implPackageName, ComponentClassInfo classInfo) throws
             IOException {
-        Map<String, String> retval = new HashMap<>();
-        String implName = String.format("%s.%s", implPackageName, classInfo.inferClassName());
-        for (int i = 0; i < classInfo.getJsonExamples().size(); i++) {
-            JsonExample jsonExample = classInfo.getJsonExamples().get(i);
-            StringBuilder sourceCode = new StringBuilder();
-            sourceCode.append(String.format("package %s;", implPackageName));
-            List<String> classesToImport = new ArrayList<>(Stream.of(ObjectMapper.class, Test.class, IOException.class)
-                    .map(Class::getName)
-                    .collect(Collectors.toList()));
-            for (String className : classesToImport) {
-                sourceCode.append(String.format("%nimport %s;", className));
-            }
-            for (Package pkg : Stream.of("java.util", "java.util.function")
-                    .map(Package::getPackage)
-                    .collect(Collectors.toList())) {
-                sourceCode.append(String.format("%nimport %s.*;", pkg.getName()));
-            }
-            for (Class<?> staticMethodsClass : Arrays.asList(Assertions.class)) {
-                sourceCode.append(String.format("%nimport static %s.*;", staticMethodsClass.getName()));
-            }
-            sourceCode.append(Optional.ofNullable(jsonExample.getDescription())
-                    .map(description -> String.format("%n/**%s%n *",
-                            Arrays.stream(description.trim().split("(\\r?\\n)+"))
-                                    .map(line -> String.format("%n * %s", line))
-                                    .collect(Collectors.joining())))
-                    .orElse(""));
-            String testClassSimpleName = String.format("%sTest%s", classInfo.inferClassName(), i + 1);
-            sourceCode.append(String.format("%npublic class %s {", testClassSimpleName));
-            sourceCode.append(String.format("public static final String TEST_CASE = \"%s\";",
-                    jsonExample.getJsonValue().replaceAll("\"", "\\\\\"").replaceAll("[\\r\\n]+", " ")));
-            sourceCode.append(String.format(
-                    "%n@Test%nvoid testDeserialization() throws IOException {%nObjectMapper jsonMapper = new ObjectMapper();"));
-            String variableName = "subject";
-            sourceCode.append(String.format("%s %s = jsonMapper.readValue(TEST_CASE, %1$s.class);",
-                    classInfo.inferClassName(),
-                    variableName));
-            Object map = jsonMapper.readValue(jsonExample.getJsonValue(), HashMap.class);
-            sourceCode.append(recursivelyGenerate(variableName, map));
-            sourceCode.append(String.format("%n}%n}"));
-            retval.put(String.format("%s.%s", implPackageName, testClassSimpleName), sourceCode.toString());
-        }
-        return retval;
+        return generateTestClasses(String.format("%s.%s", implPackageName, classInfo.inferClassName()),
+                implPackageName,
+                classInfo);
+    }
+
+    public Map<String, String> generateTestClasses(String implPackageName, MessageClassInfo classInfo) throws
+            IOException {
+        return generateTestClasses(classInfo.getMessageType().getName(), implPackageName, classInfo);
     }
 
 }
