@@ -7,16 +7,16 @@ import java.util.*;
 
 @Getter
 @Setter
-public class ClassInfo {
+public abstract class AbstractClassInfo {
     private String name;
     private String description;
     private List<PropertyInfo> propertyInfo;
     private List<JsonExample> jsonExamples;
 
-    public ClassInfo() {
+    public AbstractClassInfo() {
     }
 
-    public ClassInfo(String name, String description, List<PropertyInfo> propertyInfo, List<JsonExample> jsonExamples) {
+    public AbstractClassInfo(String name, String description, List<PropertyInfo> propertyInfo, List<JsonExample> jsonExamples) {
         this.name = name;
         this.description = description;
         this.propertyInfo = propertyInfo;

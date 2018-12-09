@@ -1,16 +1,17 @@
 package f18a14c09s.generation.alexa.music.data;
 
+import f18a14c09s.integration.alexa.data.AbstractMessage;
+import f18a14c09s.integration.alexa.data.Request;
+import f18a14c09s.integration.alexa.data.Response;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.*;
 
-import static f18a14c09s.generation.alexa.music.data.MessageClassInfo.MessageType.RESPONSE;
-
 @Getter
 @Setter
-public class MessageClassInfo extends ClassInfo {
-    private MessageType messageType;
+public class MessageClassInfo extends AbstractClassInfo {
+    private Class<? extends AbstractMessage> messageType;
     private String namespace;
 
     public MessageClassInfo() {
@@ -20,7 +21,7 @@ public class MessageClassInfo extends ClassInfo {
                             String description,
                             List<PropertyInfo> propertyInfo,
                             List<JsonExample> jsonExamples,
-                            MessageType messageType,
+                            Class<? extends AbstractMessage> messageType,
                             String namespace) {
         super(name, description, propertyInfo, jsonExamples);
         this.messageType = messageType;
@@ -30,14 +31,11 @@ public class MessageClassInfo extends ClassInfo {
     @Override
     public String inferClassName() {
         return Optional.ofNullable(getMessageType())
-                .map(msgType -> msgType == MessageType.REQUEST ?
+                .map(msgType -> msgType == Request.class ?
                         String.format("%sRequest", getName()) :
-                        msgType == RESPONSE ? String.format("%sResponse", getName().replaceAll("\\.Response$", "")) : null)
+                        msgType == Response.class ?
+                                String.format("%sResponse", getName().replaceAll("\\.Response$", "")) :
+                                null)
                 .orElse(null);
-    }
-
-    public enum MessageType {
-        REQUEST,
-        RESPONSE
     }
 }

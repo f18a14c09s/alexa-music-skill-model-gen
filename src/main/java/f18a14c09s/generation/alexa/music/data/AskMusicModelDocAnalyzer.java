@@ -1,5 +1,8 @@
 package f18a14c09s.generation.alexa.music.data;
 
+import f18a14c09s.integration.alexa.data.AbstractMessage;
+import f18a14c09s.integration.alexa.data.Request;
+import f18a14c09s.integration.alexa.data.Response;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -128,13 +131,13 @@ public class AskMusicModelDocAnalyzer {
                                 getPropertyTable(mainColumn.selectFirst("h3#request-payload")),
                                 description.toString(),
                                 document.body().selectFirst("h3[id~=example-.+-requests?]"),
-                                MessageClassInfo.MessageType.REQUEST);
+                                Request.class);
                 retval.add(new MessageInfo(requestInfo,
                         getMessageClassInfo(getPropertyTable(mainColumn.selectFirst("h3#response-header")),
                                 getPropertyTable(mainColumn.selectFirst("h3#response-payload")),
                                 String.format("@see %s", requestInfo.inferClassName()),
                                 document.body().selectFirst("h3[id~=example-.+-responses?]"),
-                                MessageClassInfo.MessageType.RESPONSE)));
+                                Response.class)));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -142,8 +145,8 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    public static List<ClassInfo> getComponentModel() throws IOException {
-        List<ClassInfo> retval = new ArrayList<>();
+    public static List<ComponentClassInfo> getComponentModel() throws IOException {
+        List<ComponentClassInfo> retval = new ArrayList<>();
         Document document =
                 Jsoup.connect("https://developer.amazon.com/docs/music-skills/api-components-reference.html").get();
         Element mainColumn = document.body().selectFirst("div.mainColumn");
@@ -167,7 +170,7 @@ public class AskMusicModelDocAnalyzer {
             getComponentExampleSections(componentSectionHeader).stream()
                     .map(AskMusicModelDocAnalyzer::getComponentJsonExamples)
                     .forEach(jsonExamples::addAll);
-            retval.add(new ClassInfo(name,
+            retval.add(new ComponentClassInfo(name,
                     description.toString(),
                     structureSections.isEmpty() ?
                             Collections.emptyList() :
@@ -207,7 +210,7 @@ public class AskMusicModelDocAnalyzer {
                                                         Element payloadPropertyTable,
                                                         String description,
                                                         Element examplesSectionHeader,
-                                                        MessageClassInfo.MessageType messageType) {
+                                                        Class<? extends AbstractMessage> messageType) {
         return new MessageClassInfo(getMessageHeaderPropertyValueInfo(headerPropertyTable, "name"),
                 description,
                 getPropertyInfo(payloadPropertyTable),
