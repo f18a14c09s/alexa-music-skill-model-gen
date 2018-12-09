@@ -96,7 +96,8 @@ public class AskMusicDocBasedTestJavaGenerator {
                     .map(description -> String.format("%n/**%s%n *",
                             Arrays.stream(description.trim().split("(\\r?\\n)+"))
                                     .map(line -> String.format("%n * %s", line))
-                                    .collect(Collectors.joining()))));
+                                    .collect(Collectors.joining())))
+                    .orElse(""));
             String testClassSimpleName = String.format("%sTest%s", classInfo.inferClassName(), i + 1);
             sourceCode.append(String.format("%npublic class %s {", testClassSimpleName));
             sourceCode.append(String.format("public static final String TEST_CASE = \"%s\";",
@@ -147,7 +148,8 @@ public class AskMusicDocBasedTestJavaGenerator {
                     .map(description -> String.format("%n/**%s%n *",
                             Arrays.stream(description.trim().split("(\\r?\\n)+"))
                                     .map(line -> String.format("%n * %s", line))
-                                    .collect(Collectors.joining()))));
+                                    .collect(Collectors.joining())))
+                    .orElse(""));
             String testClassSimpleName = String.format("%sTest%s", classInfo.inferClassName(), i + 1);
             sourceCode.append(String.format("%npublic class %s {", testClassSimpleName));
             sourceCode.append(String.format("public static final String TEST_CASE = \"%s\";",
