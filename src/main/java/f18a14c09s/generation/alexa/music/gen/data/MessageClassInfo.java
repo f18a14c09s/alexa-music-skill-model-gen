@@ -1,8 +1,8 @@
 package f18a14c09s.generation.alexa.music.gen.data;
 
 import f18a14c09s.integration.alexa.data.AbstractMessage;
-import f18a14c09s.integration.alexa.music.data.Request;
-import f18a14c09s.integration.alexa.music.data.Response;
+import f18a14c09s.integration.alexa.music.messaging.data.Request;
+import f18a14c09s.integration.alexa.music.messaging.data.Response;
 import lombok.Getter;
 import lombok.Setter;
 
