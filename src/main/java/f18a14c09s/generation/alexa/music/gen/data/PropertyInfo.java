@@ -1,4 +1,4 @@
-package f18a14c09s.generation.alexa.music.data;
+package f18a14c09s.generation.alexa.music.gen.data;
 
 import lombok.Getter;
 import lombok.Setter;

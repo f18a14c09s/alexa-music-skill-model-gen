@@ -1,5 +1,6 @@
-package f18a14c09s.generation.alexa.music.data;
+package f18a14c09s.generation.alexa.music.gen.services;
 
+import f18a14c09s.generation.alexa.music.gen.data.*;
 import f18a14c09s.integration.alexa.data.AbstractMessage;
 import f18a14c09s.integration.alexa.music.data.Request;
 import f18a14c09s.integration.alexa.music.data.Response;
@@ -14,9 +15,10 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public class AskMusicModelDocAnalyzer {
+public class AskMusicApiDocAnalyzer {
     public static void main(String... args) throws IOException {
-        getMessageModel().stream().forEach(msgInfo -> {
+        AskMusicApiDocAnalyzer analyzer = new AskMusicApiDocAnalyzer();
+        analyzer.getMessageModel().stream().forEach(msgInfo -> {
             System.out.printf(
                     "Message %s:%n\tRequest:%n\t\tNamespace: %s%n\t\tName: %1$s%n\t\tInferred Class Name: %s%n\t\tDescription:%s%n\t\tProperty Info:%s%n\t\tJSON Examples:%s%n\tResponse:%n\t\tNamespace: %s%n\t\tName: %s%n\t\tInferred Class Name: %s%n\t\tDescription:%s%n\t\tProperty Info:%s%n\t\tJSON Examples:%s%n",
                     msgInfo.getRequestInfo().getName(),
@@ -72,7 +74,7 @@ public class AskMusicModelDocAnalyzer {
                                     json.getJsonValue().replaceAll("(\\r?\\n)+", "  ")))
                             .collect(Collectors.joining()));
         });
-        getComponentModel().stream().forEach(classInfo -> {
+        analyzer.getComponentModel().stream().forEach(classInfo -> {
             System.out.printf(
                     "Component %s:%n\tInferred Class Name: %s%n\tDescription:%s%n\tProperty Info:%s%n\tJSON Examples:%s%n",
                     classInfo.getName(),
@@ -101,7 +103,7 @@ public class AskMusicModelDocAnalyzer {
         });
     }
 
-    public static List<MessageInfo> getMessageModel() throws IOException {
+    public List<MessageInfo> getMessageModel() throws IOException {
         List<MessageInfo> retval = new ArrayList<>();
         Connection conn = Jsoup.connect("https://developer.amazon.com/docs/music-skills/api-reference-overview.html");
         Element overviewLink = conn.get().body().selectFirst("a[href=\"../music-skills/api-reference-overview.html\"]");
@@ -145,7 +147,7 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    public static List<ComponentClassInfo> getComponentModel() throws IOException {
+    public List<ComponentClassInfo> getComponentModel() throws IOException {
         List<ComponentClassInfo> retval = new ArrayList<>();
         Document document =
                 Jsoup.connect("https://developer.amazon.com/docs/music-skills/api-components-reference.html").get();
@@ -168,7 +170,7 @@ public class AskMusicModelDocAnalyzer {
             }
             List<JsonExample> jsonExamples = new ArrayList<>();
             getComponentExampleSections(componentSectionHeader).stream()
-                    .map(AskMusicModelDocAnalyzer::getComponentJsonExamples)
+                    .map(this::getComponentJsonExamples)
                     .forEach(jsonExamples::addAll);
             retval.add(new ComponentClassInfo(name,
                     description.toString(),
@@ -180,7 +182,7 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    private static List<Element> getComponentStructureSections(Element componentSectionHeader) {
+    private List<Element> getComponentStructureSections(Element componentSectionHeader) {
         List<Element> retval = new ArrayList<>();
         for (Element sibling = componentSectionHeader.nextElementSibling(); sibling != null;
              sibling = sibling.nextElementSibling()) {
@@ -193,7 +195,7 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    private static List<Element> getComponentExampleSections(Element componentSectionHeader) {
+    private List<Element> getComponentExampleSections(Element componentSectionHeader) {
         List<Element> retval = new ArrayList<>();
         for (Element sibling = componentSectionHeader.nextElementSibling(); sibling != null;
              sibling = sibling.nextElementSibling()) {
@@ -206,11 +208,11 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    private static MessageClassInfo getMessageClassInfo(Element headerPropertyTable,
-                                                        Element payloadPropertyTable,
-                                                        String description,
-                                                        Element examplesSectionHeader,
-                                                        Class<? extends AbstractMessage> messageType) {
+    private MessageClassInfo getMessageClassInfo(Element headerPropertyTable,
+                                                 Element payloadPropertyTable,
+                                                 String description,
+                                                 Element examplesSectionHeader,
+                                                 Class<? extends AbstractMessage> messageType) {
         return new MessageClassInfo(getMessageHeaderPropertyValueInfo(headerPropertyTable, "name"),
                 description,
                 getPropertyInfo(payloadPropertyTable),
@@ -219,7 +221,7 @@ public class AskMusicModelDocAnalyzer {
                 getMessageHeaderPropertyValueInfo(headerPropertyTable, "namespace"));
     }
 
-    private static String getMessageHeaderPropertyValueInfo(Element headerTable, String propertyName) {
+    private String getMessageHeaderPropertyValueInfo(Element headerTable, String propertyName) {
         if (headerTable != null) {
             Map<String, Integer> headers = getTableHeaderMap(headerTable);
             for (Element row : headerTable.selectFirst("tbody").select("tr")) {
@@ -234,7 +236,7 @@ public class AskMusicModelDocAnalyzer {
         return null;
     }
 
-    private static List<PropertyInfo> getPropertyInfo(Element table) {
+    private List<PropertyInfo> getPropertyInfo(Element table) {
         List<PropertyInfo> retval = new ArrayList<>();
         if (table != null) {
             Map<String, Integer> headers = getTableHeaderMap(table);
@@ -251,7 +253,7 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    private static Map<String, Integer> getTableHeaderMap(Element table) {
+    private Map<String, Integer> getTableHeaderMap(Element table) {
         Map<String, Integer> retval = new HashMap<>();
         if (table != null) {
             Element tr = table.selectFirst("thead").selectFirst("tr");
@@ -263,7 +265,7 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    private static Element getPropertyTable(Element sectionHeader) {
+    private Element getPropertyTable(Element sectionHeader) {
         if (sectionHeader != null) {
             for (Element sibling = sectionHeader.nextElementSibling(); sibling != null && sibling.is("p,table");
                  sibling = sibling.nextElementSibling()) {
@@ -275,7 +277,7 @@ public class AskMusicModelDocAnalyzer {
         return null;
     }
 
-    private static List<JsonExample> getMessgeJsonExamples(Element sectionHeader) {
+    private List<JsonExample> getMessgeJsonExamples(Element sectionHeader) {
         List<JsonExample> retval = new ArrayList<>();
         if (sectionHeader != null) {
             StringBuilder description = new StringBuilder();
@@ -297,7 +299,7 @@ public class AskMusicModelDocAnalyzer {
         return retval;
     }
 
-    private static List<JsonExample> getComponentJsonExamples(Element sectionHeader) {
+    private List<JsonExample> getComponentJsonExamples(Element sectionHeader) {
         List<JsonExample> retval = new ArrayList<>();
         if (sectionHeader != null) {
             StringBuilder description = new StringBuilder();

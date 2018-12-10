@@ -1,4 +1,4 @@
-package f18a14c09s.generation.alexa.music.data;
+package f18a14c09s.generation.alexa.music.gen.data;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;

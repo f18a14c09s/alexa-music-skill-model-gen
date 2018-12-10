@@ -1,4 +1,4 @@
-package f18a14c09s.generation.alexa.music.data;
+package f18a14c09s.generation.alexa.music.gen.data;
 
 import f18a14c09s.integration.alexa.data.AbstractMessage;
 import f18a14c09s.integration.alexa.music.data.Request;

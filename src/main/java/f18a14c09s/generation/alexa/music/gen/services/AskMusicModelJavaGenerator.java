@@ -1,8 +1,10 @@
-package f18a14c09s.generation.alexa.music.data;
+package f18a14c09s.generation.alexa.music.gen.services;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import f18a14c09s.generation.alexa.music.gen.data.ComponentClassInfo;
+import f18a14c09s.generation.alexa.music.gen.data.MessageClassInfo;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,9 +12,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.*;
 
-public class AskMusicDocBasedJavaGenerator {
+public class AskMusicModelJavaGenerator {
     @Getter
-    private Map<String, String> supportingClasses = new HashMap<>();
+    private Map<String, String> result = new HashMap<>();
 
     private ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -66,7 +68,7 @@ public class AskMusicDocBasedJavaGenerator {
                         propertyInfo.getName()))
                 .forEach(subjectSourceCode::append);
         subjectSourceCode.append(String.format("%n}%n}"));
-        supportingClasses.put(implName, subjectSourceCode.toString());
+        result.put(implName, subjectSourceCode.toString());
     }
 
     /**
@@ -99,7 +101,7 @@ public class AskMusicDocBasedJavaGenerator {
                         propertyInfo.getName()))
                 .forEach(subjectSourceCode::append);
         subjectSourceCode.append(String.format("%n}"));
-        supportingClasses.put(implName, subjectSourceCode.toString());
+        result.put(implName, subjectSourceCode.toString());
     }
 
 }

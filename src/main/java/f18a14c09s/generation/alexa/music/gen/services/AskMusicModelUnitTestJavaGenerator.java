@@ -1,10 +1,10 @@
-package f18a14c09s.integration.alexa.music.testing;
+package f18a14c09s.generation.alexa.music.gen.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import f18a14c09s.generation.alexa.music.data.AbstractClassInfo;
-import f18a14c09s.generation.alexa.music.data.ComponentClassInfo;
-import f18a14c09s.generation.alexa.music.data.JsonExample;
-import f18a14c09s.generation.alexa.music.data.MessageClassInfo;
+import f18a14c09s.generation.alexa.music.gen.data.AbstractClassInfo;
+import f18a14c09s.generation.alexa.music.gen.data.ComponentClassInfo;
+import f18a14c09s.generation.alexa.music.gen.data.JsonExample;
+import f18a14c09s.generation.alexa.music.gen.data.MessageClassInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -12,11 +12,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.*;
 
-public class AskMusicExampleBasedTestJavaGenerator {
+public class AskMusicModelUnitTestJavaGenerator {
 
     private ObjectMapper jsonMapper = new ObjectMapper();
 
-    private String recursivelyGenerate(String expression, Object value) {
+    private String generateMethodBody(String expression, Object value) {
         String simpleValueComparison = getSimpleValueComparison(expression, value);
         if (value == null) {
             return String.format("%nassertNull(%s);", expression);
@@ -26,7 +26,7 @@ public class AskMusicExampleBasedTestJavaGenerator {
             Map<?, ?> map = (Map<?, ?>) value;
             return String.format("%n%s", map.entrySet().stream().map(child -> {
                 String key = (String) child.getKey();
-                return recursivelyGenerate(String.format("%s.get%s%s()",
+                return generateMethodBody(String.format("%s.get%s%s()",
                         expression,
                         Character.toUpperCase(key.charAt(0)),
                         key.substring(1)), child.getValue());
@@ -35,7 +35,7 @@ public class AskMusicExampleBasedTestJavaGenerator {
             List<?> list = (List<?>) value;
             StringBuilder assertionCode = new StringBuilder();
             for (int i = 0; i < list.size(); i++) {
-                assertionCode.append(recursivelyGenerate(String.format("%s.get(%s)", expression, i), list.get(i)));
+                assertionCode.append(generateMethodBody(String.format("%s.get(%s)", expression, i), list.get(i)));
             }
             return assertionCode.toString();
         } else {
@@ -68,9 +68,9 @@ public class AskMusicExampleBasedTestJavaGenerator {
         return null;
     }
 
-    public Map<String, String> generateTestClasses(String apiClassName,
-                                                   String implPackageName,
-                                                   AbstractClassInfo classInfo) throws IOException {
+    private Map<String, String> generateTestClasses(String apiClassName,
+                                                    String implPackageName,
+                                                    AbstractClassInfo classInfo) throws IOException {
         String apiPackageName = apiClassName.substring(0, apiClassName.lastIndexOf('.'));
         String apiClassSimpleName = apiClassName.substring(apiClassName.lastIndexOf('.') + 1);
         Map<String, String> retval = new HashMap<>();
@@ -119,7 +119,7 @@ public class AskMusicExampleBasedTestJavaGenerator {
                 sourceCode.append(String.format("%s %s = (%1$s)obj;", classInfo.inferClassName(), variableName));
             }
             Object map = jsonMapper.readValue(jsonExample.getJsonValue(), HashMap.class);
-            sourceCode.append(recursivelyGenerate(variableName, map));
+            sourceCode.append(generateMethodBody(variableName, map));
             sourceCode.append(String.format("%n}%n}"));
             retval.put(String.format("%s.%s", implPackageName, testClassSimpleName), sourceCode.toString());
         }
