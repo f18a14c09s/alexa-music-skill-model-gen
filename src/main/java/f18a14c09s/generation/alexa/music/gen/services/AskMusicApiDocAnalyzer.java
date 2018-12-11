@@ -23,7 +23,7 @@ public class AskMusicApiDocAnalyzer {
                     "Message %s:%n\tRequest:%n\t\tNamespace: %s%n\t\tName: %1$s%n\t\tInferred Class Name: %s%n\t\tDescription:%s%n\t\tProperty Info:%s%n\t\tJSON Examples:%s%n\tResponse:%n\t\tNamespace: %s%n\t\tName: %s%n\t\tInferred Class Name: %s%n\t\tDescription:%s%n\t\tProperty Info:%s%n\t\tJSON Examples:%s%n",
                     msgInfo.getRequestInfo().getName(),
                     msgInfo.getRequestInfo().getNamespace(),
-                    msgInfo.getRequestInfo().inferClassName(),
+                    msgInfo.getRequestInfo().inferClassSimpleName(),
                     Arrays.stream(msgInfo.getRequestInfo().getDescription().split("\\r?\\n"))
                             .map(paragraph -> String.format("%n\t\t\t%s", paragraph))
                             .collect(Collectors.joining()),
@@ -49,7 +49,7 @@ public class AskMusicApiDocAnalyzer {
                             .collect(Collectors.joining()),
                     msgInfo.getResponseInfo().getNamespace(),
                     msgInfo.getResponseInfo().getName(),
-                    msgInfo.getResponseInfo().inferClassName(),
+                    msgInfo.getResponseInfo().inferClassSimpleName(),
                     Arrays.stream(msgInfo.getResponseInfo().getDescription().split("\\r?\\n"))
                             .map(paragraph -> String.format("%n\t\t\t%s", paragraph))
                             .collect(Collectors.joining()),
@@ -78,7 +78,7 @@ public class AskMusicApiDocAnalyzer {
             System.out.printf(
                     "Component %s:%n\tInferred Class Name: %s%n\tDescription:%s%n\tProperty Info:%s%n\tJSON Examples:%s%n",
                     classInfo.getName(),
-                    classInfo.inferClassName(),
+                    classInfo.inferClassSimpleName(),
                     Arrays.stream(classInfo.getDescription().split("\\r?\\n"))
                             .map(paragraph -> String.format("%n\t\t\t%s", paragraph))
                             .collect(Collectors.joining()),
@@ -91,6 +91,37 @@ public class AskMusicApiDocAnalyzer {
                                     propertyInfo.inferClassName(),
                                     propertyInfo.getRequired(),
                                     Arrays.stream(propertyInfo.getDescription().split("\\r?\\n"))
+                                            .map(paragraph -> String.format("%n\t\t\t\t%s", paragraph))
+                                            .collect(Collectors.joining())))
+                            .collect(Collectors.joining()),
+                    classInfo.getJsonExamples()
+                            .stream()
+                            .map(json -> String.format("%n\t\t%s:%n\t\t\t%s",
+                                    json.getDescription().replaceAll("(\\r?\\n)+", "  "),
+                                    json.getJsonValue().replaceAll("(\\r?\\n)+", "  ")))
+                            .collect(Collectors.joining()));
+        });
+        analyzer.getCatalogModel().stream().forEach(classInfo -> {
+            System.out.printf(
+                    "Component %s:%n\tInferred Class Simple Name: %s%n\tInferred Entity Class Simple Name: %s%n\tInferred Catalog Type Constant: %s%n\tDescription:%s%n\tProperty Info:%s%n\tJSON Examples:%s%n",
+                    classInfo.getName(),
+                    classInfo.inferClassSimpleName(),
+                    classInfo.inferEntityClassSimpleName(),
+                    classInfo.inferTypeConstantName(),
+                    Arrays.stream(classInfo.getDescription().split("\\r?\\n"))
+                            .map(paragraph -> String.format("%n\t\t\t%s", paragraph))
+                            .collect(Collectors.joining()),
+                    classInfo.getPropertyInfo()
+                            .stream()
+                            .map(propertyInfo -> String.format(
+                                    "%n\t\t%s:%n\t\t\tType: %s%n\t\t\tInferred Class Name: %s%n\t\t\tRequired: %s%n\t\t\tDescription:%s",
+                                    propertyInfo.getName(),
+                                    propertyInfo.getType(),
+                                    propertyInfo.inferClassName(),
+                                    propertyInfo.getRequired(),
+                                    Arrays.stream(Optional.ofNullable(propertyInfo.getDescription())
+                                            .orElse("")
+                                            .split("\\r?\\n"))
                                             .map(paragraph -> String.format("%n\t\t\t\t%s", paragraph))
                                             .collect(Collectors.joining())))
                             .collect(Collectors.joining()),
@@ -137,7 +168,7 @@ public class AskMusicApiDocAnalyzer {
                 retval.add(new MessageInfo(requestInfo,
                         getMessageClassInfo(getPropertyTable(mainColumn.selectFirst("h3#response-header")),
                                 getPropertyTable(mainColumn.selectFirst("h3#response-payload")),
-                                String.format("@see %s", requestInfo.inferClassName()),
+                                String.format("@see %s", requestInfo.inferClassSimpleName()),
                                 document.body().selectFirst("h3[id~=example-.+-responses?]"),
                                 Response.class)));
             } catch (IOException e) {
@@ -182,6 +213,35 @@ public class AskMusicApiDocAnalyzer {
         return retval;
     }
 
+    public List<CatalogClassInfo> getCatalogModel() throws IOException {
+        List<CatalogClassInfo> retval = new ArrayList<>();
+        Document document =
+                Jsoup.connect("https://developer.amazon.com/docs/music-skills/catalog-reference.html").get();
+        Element mainColumn = document.body().selectFirst("div.mainColumn");
+        List<Element> componentSectionHeaders = mainColumn.select("h2")
+                .stream()
+                .filter(h2 -> !Arrays.asList("overview", "catalog-field-definitions").contains(h2.id()))
+                .collect(Collectors.toList());
+        for (int i = 0; i < componentSectionHeaders.size(); i++) {
+            Element componentSectionHeader = componentSectionHeaders.get(i);
+            String name = componentSectionHeader.text();
+            StringBuilder description = new StringBuilder();
+            for (Element candidate = componentSectionHeader.nextElementSibling();
+                 candidate != null && candidate.is("p"); candidate = candidate.nextElementSibling()) {
+                description.append(String.format("%s%n", candidate.text()));
+            }
+            List<JsonExample> jsonExamples = new ArrayList<>();
+            getCatalogExampleSection(componentSectionHeader).stream()
+                    .map(this::getComponentJsonExamples)
+                    .forEach(jsonExamples::addAll);
+            retval.add(new CatalogClassInfo(name,
+                    description.toString(),
+                    getPropertyInfo(getPropertyTable(componentSectionHeader)),
+                    jsonExamples));
+        }
+        return retval;
+    }
+
     private List<Element> getComponentStructureSections(Element componentSectionHeader) {
         List<Element> retval = new ArrayList<>();
         for (Element sibling = componentSectionHeader.nextElementSibling(); sibling != null;
@@ -208,6 +268,19 @@ public class AskMusicApiDocAnalyzer {
         return retval;
     }
 
+    private List<Element> getCatalogExampleSection(Element componentSectionHeader) {
+        List<Element> retval = new ArrayList<>();
+        for (Element sibling = componentSectionHeader.nextElementSibling(); sibling != null;
+             sibling = sibling.nextElementSibling()) {
+            if (sibling.is("h3[id~=.+-catalog-example]")) {
+                retval.add(sibling);
+            } else if (sibling.is("h1,h2")) {
+                break;
+            }
+        }
+        return retval;
+    }
+
     private MessageClassInfo getMessageClassInfo(Element headerPropertyTable,
                                                  Element payloadPropertyTable,
                                                  String description,
@@ -216,7 +289,7 @@ public class AskMusicApiDocAnalyzer {
         return new MessageClassInfo(getMessageHeaderPropertyValueInfo(headerPropertyTable, "name"),
                 description,
                 getPropertyInfo(payloadPropertyTable),
-                getMessgeJsonExamples(examplesSectionHeader),
+                getMessageJsonExamples(examplesSectionHeader),
                 messageType,
                 getMessageHeaderPropertyValueInfo(headerPropertyTable, "namespace"));
     }
@@ -247,7 +320,7 @@ public class AskMusicApiDocAnalyzer {
                 retval.add(new PropertyInfo(getCellData.apply("Field"),
                         getCellData.apply("Type"),
                         getCellData.apply("Description"),
-                        getCellData.apply("Required?")));
+                        Optional.ofNullable(getCellData.apply("Required?")).orElse(getCellData.apply("Required"))));
             }
         }
         return retval;
@@ -277,7 +350,7 @@ public class AskMusicApiDocAnalyzer {
         return null;
     }
 
-    private List<JsonExample> getMessgeJsonExamples(Element sectionHeader) {
+    private List<JsonExample> getMessageJsonExamples(Element sectionHeader) {
         List<JsonExample> retval = new ArrayList<>();
         if (sectionHeader != null) {
             StringBuilder description = new StringBuilder();

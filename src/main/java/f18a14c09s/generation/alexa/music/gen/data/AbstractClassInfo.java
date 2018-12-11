@@ -27,7 +27,7 @@ public abstract class AbstractClassInfo {
         return null;
     }
 
-    public String inferClassName() {
+    public String inferClassSimpleName() {
         return getName();
     }
 }

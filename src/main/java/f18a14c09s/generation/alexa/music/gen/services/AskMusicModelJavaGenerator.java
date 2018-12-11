@@ -42,7 +42,7 @@ public class AskMusicModelJavaGenerator {
      * @throws IOException
      */
     public void addClass(String implPackageName, MessageClassInfo classInfo) {
-        String implSimpleName = classInfo.inferClassName();
+        String implSimpleName = classInfo.inferClassSimpleName();
         String implName = String.format("%s.%s", implPackageName, implSimpleName);
         StringBuilder subjectSourceCode = new StringBuilder();
         subjectSourceCode.append(getPackageDeclarationAndImports(implPackageName));
@@ -77,7 +77,7 @@ public class AskMusicModelJavaGenerator {
      * @throws IOException
      */
     public void addClass(String packageName, ComponentClassInfo classInfo) {
-        String implSimpleName = classInfo.inferClassName();
+        String implSimpleName = classInfo.inferClassSimpleName();
         String implName = String.format("%s.%s", packageName, implSimpleName);
         StringBuilder subjectSourceCode = new StringBuilder();
         subjectSourceCode.append(getPackageDeclarationAndImports(packageName));

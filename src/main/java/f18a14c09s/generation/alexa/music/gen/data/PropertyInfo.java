@@ -59,7 +59,9 @@ public class PropertyInfo {
 
     public enum Required {
         yes(true),
-        no(false);
+        no(false),
+        Yes(true),
+        No(false);
         @Getter
         private final boolean value;
 

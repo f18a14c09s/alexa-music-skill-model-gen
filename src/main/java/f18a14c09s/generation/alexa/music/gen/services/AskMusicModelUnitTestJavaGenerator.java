@@ -1,10 +1,7 @@
 package f18a14c09s.generation.alexa.music.gen.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import f18a14c09s.generation.alexa.music.gen.data.AbstractClassInfo;
-import f18a14c09s.generation.alexa.music.gen.data.ComponentClassInfo;
-import f18a14c09s.generation.alexa.music.gen.data.JsonExample;
-import f18a14c09s.generation.alexa.music.gen.data.MessageClassInfo;
+import f18a14c09s.generation.alexa.music.gen.data.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -74,7 +71,7 @@ public class AskMusicModelUnitTestJavaGenerator {
         String apiPackageName = apiClassName.substring(0, apiClassName.lastIndexOf('.'));
         String apiClassSimpleName = apiClassName.substring(apiClassName.lastIndexOf('.') + 1);
         Map<String, String> retval = new HashMap<>();
-        String implName = String.format("%s.%s", implPackageName, classInfo.inferClassName());
+        String implName = String.format("%s.%s", implPackageName, classInfo.inferClassSimpleName());
         for (int i = 0; i < classInfo.getJsonExamples().size(); i++) {
             JsonExample jsonExample = classInfo.getJsonExamples().get(i);
             StringBuilder sourceCode = new StringBuilder();
@@ -102,7 +99,7 @@ public class AskMusicModelUnitTestJavaGenerator {
                                     .map(line -> String.format("%n * %s", line))
                                     .collect(Collectors.joining())))
                     .orElse(""));
-            String testClassSimpleName = String.format("%sTest%s", classInfo.inferClassName(), i + 1);
+            String testClassSimpleName = String.format("%sTest%s", classInfo.inferClassSimpleName(), i + 1);
             sourceCode.append(String.format("%npublic class %s {", testClassSimpleName));
             sourceCode.append(String.format("public static final String TEST_CASE = \"%s\";",
                     jsonExample.getJsonValue().replaceAll("\"", "\\\\\"").replaceAll("[\\r\\n]+", " ")));
@@ -111,12 +108,12 @@ public class AskMusicModelUnitTestJavaGenerator {
             String variableName = "subject";
             if (apiClassName.equals(implName)) {
                 sourceCode.append(String.format("%s %s = jsonMapper.readValue(TEST_CASE, %1$s.class);",
-                        classInfo.inferClassName(),
+                        classInfo.inferClassSimpleName(),
                         variableName));
             } else {
                 sourceCode.append(String.format("%s obj = jsonMapper.readValue(TEST_CASE, %1$s.class);",
                         apiClassSimpleName));
-                sourceCode.append(String.format("%s %s = (%1$s)obj;", classInfo.inferClassName(), variableName));
+                sourceCode.append(String.format("%s %s = (%1$s)obj;", classInfo.inferClassSimpleName(), variableName));
             }
             Object map = jsonMapper.readValue(jsonExample.getJsonValue(), HashMap.class);
             sourceCode.append(generateMethodBody(variableName, map));
@@ -128,7 +125,7 @@ public class AskMusicModelUnitTestJavaGenerator {
 
     public Map<String, String> generateTestClasses(String implPackageName, ComponentClassInfo classInfo) throws
             IOException {
-        return generateTestClasses(String.format("%s.%s", implPackageName, classInfo.inferClassName()),
+        return generateTestClasses(String.format("%s.%s", implPackageName, classInfo.inferClassSimpleName()),
                 implPackageName,
                 classInfo);
     }
@@ -136,6 +133,13 @@ public class AskMusicModelUnitTestJavaGenerator {
     public Map<String, String> generateTestClasses(String implPackageName, MessageClassInfo classInfo) throws
             IOException {
         return generateTestClasses(classInfo.getMessageType().getName(), implPackageName, classInfo);
+    }
+
+    public Map<String, String> generateTestClasses(String implPackageName, CatalogClassInfo classInfo) throws
+            IOException {
+        return generateTestClasses(String.format("%s.%s", implPackageName, classInfo.inferClassSimpleName()),
+                implPackageName,
+                classInfo);
     }
 
 }

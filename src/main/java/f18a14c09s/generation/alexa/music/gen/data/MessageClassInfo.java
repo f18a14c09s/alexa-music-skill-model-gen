@@ -29,7 +29,7 @@ public class MessageClassInfo extends AbstractClassInfo {
     }
 
     @Override
-    public String inferClassName() {
+    public String inferClassSimpleName() {
         return Optional.ofNullable(getMessageType())
                 .map(msgType -> msgType == Request.class ?
                         String.format("%sRequest", getName()) :
